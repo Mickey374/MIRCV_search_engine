@@ -17,7 +17,7 @@ public class Preprocessor {
     private static final String HTML_TAGS_MATCHER = "<[^>]+>";
     private static final String NON_DIGIT_MATCHER = "[^a-zA-Z]";
     private static final String MULTIPLE_SPACE_MATCHER = "\s+";
-    private static final String STOPWORDS_FILE = "/home/asante/Desktop/PROJECTS/AIDE_COURSE_PROJECTS/MIRCV_search_engine/preprocessor/src/main/java/preprocess/stopwords-en.txt";
+    private static final String STOPWORDS_FILE = "data/stopwords-en.txt";
     private static ArrayList<String> stopwords = new ArrayList<>();
     public static PorterStemmer stemmer = new PorterStemmer();
 
