@@ -1,10 +1,24 @@
-package loader;
+package loader.src.main.java.loader;
 
+import loader.TextDocument;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 public class Collection {
-    private ArrayList<TextDocument> documents = new ArrayList<TextDocument>();
+    private ArrayList<TextDocument> documents;
 
-//     Method to add documents to arrayList
+    // Initialize the arrayList of documents
+    public Collection() {
+         this.documents = new ArrayList<>();
+    }
+
+//     Method to add documents to arrayList collection
     public void addDocuments(TextDocument doc) {
             documents.add(doc);
     }
@@ -33,4 +47,31 @@ public class Collection {
             System.out.println(doc);
         }
     }
+
+
+    /**
+     * Method to save collection to disk
+     * @param path: Path to file
+     **/
+    public void writeToFile(String path){
+        System.out.println("Current Directory: " + System.getProperty("user.dir"));
+
+        try{
+            File outputFile = new File(path);
+            if(outputFile.createNewFile()) {
+                System.out.println("File created successfully: " + outputFile.getName());
+            } else {
+                System.out.println("File already exists.");
+            }
+
+            for(TextDocument doc: this.documents)
+                Files.writeString(Paths.get(path), doc.getDocId() + "\t" + doc.getText() + "\n", StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+        } catch (IOException e){
+            System.out.println("Working Directory: " + System.getProperty("user.dir"));
+            System.out.println("An error occured while saving data to file.");
+            e.printStackTrace();
+
+        }
+    }
+
 }
