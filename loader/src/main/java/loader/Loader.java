@@ -12,20 +12,21 @@ public class Loader {
 //    private static final String DATA_PATH = "./data/collection.tsv";
     private static final String DATA_PATH = "./data/test_sample.tsv";
     public static void main(String[] args) {
-        loadData().printCollection();
+
+//        loadData().printCollection();
+        Collection c = loadData();
+        c.writeToFile("./data/loadedData.tsv");
     }
 
     private static Collection loadData(){
         Collection collection = new Collection();
-        int i = 0;
 
         try(BufferedReader br = Files.newBufferedReader(Paths.get(DATA_PATH), StandardCharsets.UTF_8)){
             String[] split;
 
             for(String line; (line = br.readLine()) != null;){
                 // If it reaches end of file, read next line
-                System.out.println(i);
-                i++;
+
                 if(line.isEmpty()) continue;
 
                 split = line.split("\t");
@@ -35,7 +36,6 @@ public class Loader {
             }
         }
         catch (Exception e){
-            System.out.println(i);
             e.printStackTrace();
         }
         return collection;
