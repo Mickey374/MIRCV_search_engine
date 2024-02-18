@@ -1,7 +1,8 @@
 package loader.src.main.java.loader;
 
-import loader.TextDocument;
-import loader.src.main.java.loader.Collection;
+
+import loader.src.main.java.beans.TextCollection;
+import loader.src.main.java.beans.TextDocument;
 
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
@@ -13,13 +14,13 @@ public class Loader {
     private static final String DATA_PATH = "./data/test_sample.tsv";
     public static void main(String[] args) {
 
-//        loadData().printCollection();
-        Collection c = loadData();
-        c.writeToFile("./data/loadedData.tsv");
+        loadData().printCollection();
+//        TextCollection c = loadData();
+//        c.writeToFile("./data/loadedData.tsv");
     }
 
-    private static Collection loadData(){
-        Collection collection = new Collection();
+    public static TextCollection loadData(){
+        TextCollection collection = new TextCollection();
 
         try(BufferedReader br = Files.newBufferedReader(Paths.get(DATA_PATH), StandardCharsets.UTF_8)){
             String[] split;

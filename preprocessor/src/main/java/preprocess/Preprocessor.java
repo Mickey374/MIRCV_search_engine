@@ -2,7 +2,16 @@ package preprocess;
 
 
 import ca.rmen.porterstemmer.PorterStemmer;
+import loader.src.main.java.beans.TextCollection;
+import loader.src.main.java.beans.TextDocument;
+import loader.src.main.java.loader.Loader;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
@@ -11,13 +20,18 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static loader.src.main.java.loader.Loader.loadData;
+
+
 public class Preprocessor {
 
     private static final String URL_MATCHER = "(?i)^(https?|ftp|mailto):\\/\\/(www\\.)?[a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,24}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$";
     private static final String HTML_TAGS_MATCHER = "<[^>]+>";
-    private static final String NON_DIGIT_MATCHER = "[^a-zA-Z]";
+    private static final String NON_DIGIT_MATCHER = "[^a-zA-Z\s]";
     private static final String MULTIPLE_SPACE_MATCHER = "\s+";
     private static final String STOPWORDS_FILE = "data/stopwords-en.txt";
+    private static final String PATH_TO_OUTPUT_FILE = "data/terms.txt";
+
     private static ArrayList<String> stopwords = new ArrayList<>();
     public static PorterStemmer stemmer = new PorterStemmer();
 
@@ -33,7 +47,6 @@ public class Preprocessor {
                 if(line.isEmpty()) continue;
 
                 // Else add word to stopwords list
-                System.out.println(line);
                 stopwords.add(line);
             }
         }
@@ -63,6 +76,9 @@ public class Preprocessor {
      * Method to return Processed text
      **/
     public static String cleanText(String text){
+        // Remove the extra spaces at the beginning and end of the text
+        text = text.trim();
+
         // Remove URLs
         text = replacePattern(text, URL_PATTERN, " ");
 
@@ -70,7 +86,7 @@ public class Preprocessor {
         text = replacePattern(text, HTML_TAGS_PATTERN, " ");
 
         // Remove non-alphabetic characters
-        text = replacePattern(text, NON_DIGIT_PATTERN, " ");
+        text = replacePattern(text, NON_DIGIT_PATTERN, "");
 
         // Replace consecutive multiple whitespaces with a single one
         text = replacePattern(text, MULTIPLE_SPACE_PATTERN, " ");
@@ -117,26 +133,48 @@ public class Preprocessor {
     }
 
     public static void main(String[] args){
-        String text = "We are living in a material world and I am a material girl";
+        readStopwords();
 
-//        for(String token: tokenizeWords(text))
-//           System.out.println(token);
+        TextCollection collection = Loader.loadData();
 
-//        String url = "http://www.benny.com <benny> my regex is better than yours </benny>";
-//         System.out.println(cleanText(url));
+        try(FileWriter file = new FileWriter(PATH_TO_OUTPUT_FILE, true)){
+            for(TextDocument doc: collection.getDocuments()){
+                String text = doc.getText();
 
-//        String punct = "heello... it's me.... ";
-//        System.out.println("\n" + cleanText(punct));
+                // lower text
+                text = lowerText(text);
 
-//        String distant = "torniamo          vicini!! ";
-//         System.out.println("\n" + cleanText(distant));
+                // clean text
+                text = cleanText(text);
 
-//        readStopwords();
+                // tokenize text data
+                String[] tokens = tokenizeWords(text);
 
-        String[] tokens = tokenizeWords("Above the bench the goat lives below the bench the goat dies");
-        tokens = getStemwords(tokens);
-        for(String token: tokens)
-            System.out.println(token);
+                // remove stopWords
+                tokens = removeStopwords(tokens);
+
+                // performing stemming
+                tokens = getStemwords(tokens);
+
+                // write tokens into JSON file
+                JSONObject jsonObject = new JSONObject();
+
+                // Use the key-value pairs to insert into the object
+                jsonObject.put("doc_pid", doc.getDocId());
+
+                JSONArray terms = new JSONArray();
+
+                for(int i=0; i < tokens.length; i++)
+                    terms.add(tokens[i]);
+
+                jsonObject.put("terms", terms);
+
+                // write the object to a file
+                file.write(jsonObject.toJSONString() + "\n");
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
 }
