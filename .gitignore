@@ -23,5 +23,8 @@
 hs_err_pid*
 replay_pid*
 data/collection.tsv
+data/test_sample.tsv
+data/loadedData.tsv
+data/terms.txt
 
 /.idea/

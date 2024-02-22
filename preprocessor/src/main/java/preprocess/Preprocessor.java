@@ -9,7 +9,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +86,7 @@ public class Preprocessor {
         text = replacePattern(text, HTML_TAGS_PATTERN, " ");
 
         // Remove non-alphabetic characters
-        text = replacePattern(text, NON_DIGIT_PATTERN, "");
+        text = replacePattern(text, NON_DIGIT_PATTERN, " ");
 
         // Replace consecutive multiple whitespaces with a single one
         text = replacePattern(text, MULTIPLE_SPACE_PATTERN, " ");
@@ -167,6 +167,8 @@ public class Preprocessor {
                 for(int i=0; i < tokens.length; i++)
                     terms.add(tokens[i]);
 
+                Collections.addAll(terms, tokens);
+
                 jsonObject.put("terms", terms);
 
                 // write the object to a file
@@ -176,5 +178,4 @@ public class Preprocessor {
             e.printStackTrace();
         }
     }
-
 }
