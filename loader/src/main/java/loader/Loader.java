@@ -1,8 +1,8 @@
-package loader.src.main.java.loader;
+package loader;
 
 
-import loader.src.main.java.beans.TextCollection;
-import loader.src.main.java.beans.TextDocument;
+import beans.TextCollection;
+import beans.TextDocument;
 
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;

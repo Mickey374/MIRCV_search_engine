@@ -1,10 +1,9 @@
 package preprocess;
 
-
 import ca.rmen.porterstemmer.PorterStemmer;
-import loader.src.main.java.beans.TextCollection;
-import loader.src.main.java.beans.TextDocument;
-import loader.src.main.java.loader.Loader;
+import beans.TextCollection;
+import beans.TextDocument;
+import loader.Loader;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -20,11 +19,7 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static loader.src.main.java.loader.Loader.loadData;
-
-
 public class Preprocessor {
-
     private static final String URL_MATCHER = "(?i)^(https?|ftp|mailto):\\/\\/(www\\.)?[a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,24}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)$";
     private static final String HTML_TAGS_MATCHER = "<[^>]+>";
     private static final String NON_DIGIT_MATCHER = "[^a-zA-Z\s]";
@@ -86,7 +81,7 @@ public class Preprocessor {
         text = replacePattern(text, HTML_TAGS_PATTERN, " ");
 
         // Remove non-alphabetic characters
-        text = replacePattern(text, NON_DIGIT_PATTERN, " ");
+        text = replacePattern(text, NON_DIGIT_PATTERN, "");
 
         // Replace consecutive multiple whitespaces with a single one
         text = replacePattern(text, MULTIPLE_SPACE_PATTERN, " ");
@@ -98,7 +93,7 @@ public class Preprocessor {
      * @param text:text to replace
      * @param pattern:pattern to match text with
      * @param replacement:replacement pattern
-    */
+     */
     private static String replacePattern(String text, Pattern pattern, String replacement) {
         Matcher matcher = pattern.matcher(text);
         return matcher.replaceAll(replacement);
@@ -106,8 +101,8 @@ public class Preprocessor {
 
     /**
      * @param tokens:The list of tokens
-     * Method to remove stopwords from list of tokens
-    **/
+     * Method to remove stop words from list of tokens
+     **/
     private static String[] removeStopwords(String[] tokens){
         // ArrayList to hold valid tokens
         ArrayList<String> validTokens = new ArrayList<>();

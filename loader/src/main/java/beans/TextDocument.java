@@ -1,4 +1,4 @@
-package loader.src.main.java.beans;
+package beans;
 
 public class TextDocument {
     /**

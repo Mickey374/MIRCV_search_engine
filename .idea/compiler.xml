@@ -6,8 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="loader" />
         <module name="preprocessor" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="loader (1) (org.example)" target="21" />
+      <module name="loader (2) (loader)" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>
