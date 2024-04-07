@@ -32,6 +32,8 @@ public class Loader {
 
                 split = line.split("\t");
 
+                System.out.println("Split -" + split[0]);
+
                 //Create the text document and insert into collection
                 collection.addDocuments(new TextDocument(Integer.parseInt(split[0]), split[1].replaceAll("[^\\x00-\\x7F]", "")));
             }
