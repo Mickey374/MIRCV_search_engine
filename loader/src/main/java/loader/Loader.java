@@ -14,11 +14,16 @@ public class Loader {
     private static final String DATA_PATH = "./data/test_sample.tsv";
     public static void main(String[] args) {
 
-        loadData().printCollection();
-//        TextCollection c = loadData();
-//        c.writeToFile("./data/loadedData.tsv");
+//        loadData().printCollection();
+        TextCollection c = loadData();
+        c.writeToFile("./data/loadedData.tsv");
     }
 
+    /**
+     * The loadData method for the loader: This loads
+     * the .tsv collection and parses the encoder to it
+     * and saves the processed collection to disk.
+     **/
     public static TextCollection loadData(){
         TextCollection collection = new TextCollection();
 
