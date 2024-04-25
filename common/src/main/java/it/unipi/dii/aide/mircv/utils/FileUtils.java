@@ -1,4 +1,4 @@
-package it.unipi.dii.aide.mircv.common.utils;
+package it.unipi.dii.aide.mircv.utils;
 
 
 import java.io.File;

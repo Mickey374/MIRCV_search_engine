@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<it.unipi.dii.aide.mircv.mircv_search_engine.config.ConfigurationParams>
+    <rawCollectionPath>data/test_sample.tsv</rawCollectionPath>
+    <loadedCollectionPath>data/loadedData.tsv</loadedCollectionPath>
+    <stopwordsPath>config/stopwords-en.txt</stopwordsPath>
+    <processedCollectionPath>data/processedCollection.txt</processedCollectionPath>
+</it.unipi.dii.aide.mircv.mircv_search_engine.config.ConfigurationParams>
