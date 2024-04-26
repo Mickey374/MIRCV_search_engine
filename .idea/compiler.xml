@@ -9,16 +9,16 @@
         <module name="indexer" />
         <module name="collectionLoader" />
         <module name="common" />
-        <module name="loader" />
-        <module name="preprocessor" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="common (1)" target="21" />
       <module name="common (2)" target="21" />
       <module name="config" target="21" />
+      <module name="loader" target="21" />
       <module name="loader (1) (org.example)" target="21" />
       <module name="loader (2) (loader)" target="21" />
+      <module name="preprocessor" target="21" />
     </bytecodeTargetLevel>
   </component>
 </project>

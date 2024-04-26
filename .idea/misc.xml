@@ -16,6 +16,8 @@
       <set>
         <option value="$PROJECT_DIR$/common/src/main/java/it/unipi/dii/aide/mircv/common/pom.xml" />
         <option value="$PROJECT_DIR$/common/src/main/java/it/unipi/dii/aide/mircv/pom.xml" />
+        <option value="$PROJECT_DIR$/loader/pom.xml" />
+        <option value="$PROJECT_DIR$/preprocessor/pom.xml" />
       </set>
     </option>
   </component>

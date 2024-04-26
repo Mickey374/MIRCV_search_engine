@@ -9,13 +9,8 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>preprocessor</module>
-        <module>collectionLoader</module>
-        <module>collectionLoader</module>
         <module>collectionLoader</module>
         <module>common</module>
-        <module>config</module>
-        <module>config</module>
         <module>indexer</module>
     </modules>
 
