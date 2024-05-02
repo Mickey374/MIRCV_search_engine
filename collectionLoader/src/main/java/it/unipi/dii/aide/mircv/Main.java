@@ -4,6 +4,7 @@ import it.unipi.dii.aide.mircv.beans.TextDocument;
 import it.unipi.dii.aide.mircv.preprocess.Preprocessor;
 import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.dto.ProcessedDocumentDTO;
+import it.unipi.dii.aide.mircv.utils.CollectionStats;
 
 import java.io.BufferedReader;
 import java.nio.charset.StandardCharsets;
@@ -33,7 +34,6 @@ public class Main {
 
     /**
      * Main Method for the Processing module
-     * @param args
      */
     public static void main(String[] args) {
         // Load the stopwords into the Preprocessor
@@ -59,6 +59,9 @@ public class Main {
 
                 // Save it to the File
                 Files.writeString(Paths.get(OUTPUT_PATH), processedDocument.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+
+                // Update the number of Documents
+                CollectionStats.addDocument();
             }
         } catch (Exception e){
             e.printStackTrace();
