@@ -1,6 +1,9 @@
 package it.unipi.dii.aide.mircv.utils;
 
 public class Utility {
+    /**
+     * Number of different intermediate indexes
+     */
     private static int numIndexes = 0;
 
     public static int getNumIndexes() {
