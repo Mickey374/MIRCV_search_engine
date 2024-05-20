@@ -38,9 +38,12 @@ public class Merger {
      */
     private static final String INTERMEDIATE_INDEX_PATH = "data/index_";
 
+    /**
+     * Num of Open Indexes to process: When 0, means all indexes are processed
+     */
     private static int openIndexes;
 
-    //private static final ArrayList<VocabularyEntry> vocabulary = new ArrayList<>();
+    private static final ArrayList<VocabularyEntry> vocabulary = new ArrayList<>();
 
     /**
      * Method that initializes data structures and opens buffers
@@ -135,6 +138,8 @@ public class Merger {
         try {
             initialize();
 
+            int memOffset = 0;
+
             while (openIndexes > 0){
                 String termToProcess = getMinTerm();
                 PostingList finalList = new PostingList();
@@ -158,10 +163,17 @@ public class Merger {
                     }
                 }
                 //the list for the term is computed, save it on disk and compute the information to store in vocabulary
-                finalList.saveToDisk();
+                int memorySize = finalList.saveToDisk(memOffset);
 
-                vocabularyEntry.computeMemoryOffsets();
+                // Write to the vocabulary space occupancy and memory offset of the Posting List
+                vocabularyEntry.setMemorySize(memorySize);
+                vocabularyEntry.setMemoryOffset(memOffset);
+
+                // Save vocabulary entry to file
                 vocabularyEntry.saveToDisk();
+
+                vocabulary.add(vocabularyEntry);
+                memOffset += memorySize;
             }
             return true;
         } catch (Exception e){
