@@ -67,6 +67,7 @@ public class VocabularyEntry {
      * @param term the token of the entry
      */
     public VocabularyEntry(String term) {
+        // Assign the term
         this.term = term;
 
         // Assign the termid and increase the counter
