@@ -172,7 +172,7 @@ public class Merger {
                 // Save vocabulary entry to file
                 vocabularyEntry.saveToDisk();
 
-                vocabulary.add(vocabularyEntry);
+//              vocabulary.add(vocabularyEntry);
                 memOffset += memorySize;
             }
             return true;

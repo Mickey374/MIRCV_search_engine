@@ -57,8 +57,10 @@ public class Main {
                 // Perform the text preprocessing on the document
                 ProcessedDocumentDTO processedDocument = Preprocessor.processDocument(document);
 
-                // Save it to the File
-                Files.writeString(Paths.get(OUTPUT_PATH), processedDocument.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                if(processedDocument.getTokens().length > 0){
+                    // Save it to the File if body is non empty
+                    Files.writeString(Paths.get(OUTPUT_PATH), processedDocument.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+                }
 
                 // Update the number of Documents
                 CollectionStats.addDocument();
