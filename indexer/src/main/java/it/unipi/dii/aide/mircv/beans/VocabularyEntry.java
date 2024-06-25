@@ -21,9 +21,9 @@ public class VocabularyEntry {
     private static int termCount = 0;
 
     /**
-     * Term Id of the specific term
+     * termid of the specific term
      */
-    private int termid;
+    private final int termid;
 
     /**
      * Term for the vocabulary entry
@@ -94,7 +94,7 @@ public class VocabularyEntry {
     /**
      * Compute the idf using the values computed during the merging of the index
      */
-    private void computeIDF(){
+    public void computeIDF(){
         this.idf = Math.log10(CollectionStats.getNumDocuments()/(double)this.df);
     }
 

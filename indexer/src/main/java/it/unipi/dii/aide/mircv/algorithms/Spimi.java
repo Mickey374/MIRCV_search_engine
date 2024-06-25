@@ -2,6 +2,7 @@ package it.unipi.dii.aide.mircv.algorithms;
 
 import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.utils.FileUtils;
+import it.unipi.dii.aide.mircv.utils.Utility;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.io.BufferedReader;
@@ -23,7 +24,7 @@ public class Spimi {
     private static final String PATH_TO_DOCUMENT_INDEX = ConfigurationParams.getDocumentIndexPath();
 
     // Memory alloc to be kept free
-    private static final long MEMORY_THRESHOLD = 106099200;
+    private static final long MEMORY_THRESHOLD = 70000000;
 
     // Hashmap to store the partial Inverted index
     private static HashMap<String, ArrayList<MutablePair<Integer, Integer>>> index = new HashMap<>();
@@ -35,7 +36,7 @@ public class Spimi {
      * Function to flush partial index onto disk
      * and cleans the index data structure so it can be re-used
      *
-     * @param path
+     * @param path: path to file on disk
      */
     private static void save_index_to_disk(String path) {
         System.out.println("**** Writing file to: " + path + " ****");
@@ -75,13 +76,13 @@ public class Spimi {
                 term \t docid1,freq1 docid2,freq2 ... docidN,freqN \n
              */
             for(int i = 0; i < postingList.size() -1; i++) {
-                entry.append(postingList.get(i).getLeft()).append(",").append(postingList.get(i).getRight()).append(" ");
+                entry.append(postingList.get(i).getLeft()).append(":").append(postingList.get(i).getRight()).append(" ");
             }
 
             // Append the last posting
-            entry.append(postingList.get(postingList.size() -1).getLeft()).append(",").append(postingList.get(postingList.size() - 1).getRight()).append("\n");
+            entry.append(postingList.get(postingList.size() -1).getLeft()).append(":").append(postingList.get(postingList.size() - 1).getRight()).append("\n");
             writeEntry(path, entry.toString());         // Write entry on file
-            entry.setLength(0);     // Clear entry to start over with the new term
+            entry.setLength(0);                         // Clear entry to start over with the new term
         }
 
         index.clear();      // empty index
@@ -183,6 +184,7 @@ public class Spimi {
                         String entry = docid++ + "\t" + pid + "," + terms.length + "\n";
 
                         writeEntry(PATH_TO_DOCUMENT_INDEX, entry);
+                        System.out.println(docid);
 
                         // For each term, updates and creates a posting list in the index
                         for(String term : terms) {
@@ -204,6 +206,7 @@ public class Spimi {
                 // Flash the current in-memory index to disk
                 save_index_to_disk(PATH_BASE_TO_INDEX + num_index + ".txt");
             }
+            Utility.setNumIndexes(num_index);
         }catch (Exception e){
             e.printStackTrace();
         }

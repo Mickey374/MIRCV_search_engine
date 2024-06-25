@@ -36,7 +36,7 @@ public class Merger {
     /**
      * Standard pathname for intermediate index files.
      */
-    private static final String INTERMEDIATE_INDEX_PATH = "data/index_";
+    private static final String INTERMEDIATE_INDEX_PATH = "data/index/index_";
 
     /**
      * Num of Open Indexes to process: When 0, means all indexes are processed
@@ -168,6 +168,9 @@ public class Merger {
                 // Write to the vocabulary space occupancy and memory offset of the Posting List
                 vocabularyEntry.setMemorySize(memorySize);
                 vocabularyEntry.setMemoryOffset(memOffset);
+
+                // Compute the final IDF
+                vocabularyEntry.computeIDF();
 
                 // Save vocabulary entry to file
                 vocabularyEntry.saveToDisk();
