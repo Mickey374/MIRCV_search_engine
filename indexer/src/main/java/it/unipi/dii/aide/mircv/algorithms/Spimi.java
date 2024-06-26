@@ -1,11 +1,17 @@
 package it.unipi.dii.aide.mircv.algorithms;
 
+import it.unipi.dii.aide.mircv.beans.PostingList;
 import it.unipi.dii.aide.mircv.config.ConfigurationParams;
+import it.unipi.dii.aide.mircv.dto.ProcessedDocumentDTO;
+import it.unipi.dii.aide.mircv.utils.CollectionStats;
 import it.unipi.dii.aide.mircv.utils.FileUtils;
 import it.unipi.dii.aide.mircv.utils.Utility;
-import org.apache.commons.lang3.tuple.MutablePair;
 
-import java.io.BufferedReader;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.HTreeMap;
+import org.mapdb.Serializer;
+
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,10 +30,10 @@ public class Spimi {
     private static final String PATH_TO_DOCUMENT_INDEX = ConfigurationParams.getDocumentIndexPath();
 
     // Memory alloc to be kept free
-    private static final long MEMORY_THRESHOLD = 70000000;
+    private static final long MEMORY_THRESHOLD = 80000000;
 
     // Hashmap to store the partial Inverted index
-    private static HashMap<String, ArrayList<MutablePair<Integer, Integer>>> index = new HashMap<>();
+    //private static HashMap<String, ArrayList<MutablePair<Integer, Integer>>> index = new HashMap<>();
 
     // Counter for the partial indexes created
     private static int num_index = 0;
@@ -36,20 +42,13 @@ public class Spimi {
      * Function to flush partial index onto disk
      * and cleans the index data structure so it can be re-used
      *
-     * @param path: path to file on disk
+     * @param index: the partial index to be saved on disk
+     *             and cleaned for further use
      */
-    private static void save_index_to_disk(String path) {
-        System.out.println("**** Writing file to: " + path + " ****");
-
+    private static void saveIndexToDisk(HashMap<String, PostingList> index) {
         // If index is empty, then there is nothing to write.
         if (index.isEmpty())
             return;
-
-        // Create the new file to save the index
-        FileUtils.CreateOrCleanFile(path);
-
-        // Create the new file entry
-        StringBuilder entry = new StringBuilder();
 
         // Sort the index in lexicographic order
         index = index.entrySet()
@@ -60,44 +59,13 @@ public class Spimi {
                         Map.Entry::getValue,
                         (e1, e2) -> e1, LinkedHashMap::new));
 
-        ArrayList<MutablePair<Integer, Integer>> postingList;
-        // For each of the Posting lists in the Inverted Index
-        for(String key: index.keySet()) {
-            // Initialize the entry to write on file
-            entry.append(key).append("\t");
+        // Write the index to disk
+        try (DB db = DBMaker.fileDB(PATH_BASE_TO_INDEX + num_index + ".db").fileChannelEnable().fileMmapEnable().make()) {
+             ArrayList<PostingList> partialIndex = (ArrayList<PostingList>) db.indexTreeList("index_" + num_index, Serializer.JAVA).createOrOpen();
+            partialIndex.addAll(index.values());
 
-            // get the PostingLists from index
-            postingList = index.get(key);
-
-            // Sort in ascending order the PostingLists by docId
-            postingList.sort(Comparator.comparing(MutablePair::getLeft));
-
-            /* Create the entry in this format for each term
-                term \t docid1,freq1 docid2,freq2 ... docidN,freqN \n
-             */
-            for(int i = 0; i < postingList.size() -1; i++) {
-                entry.append(postingList.get(i).getLeft()).append(":").append(postingList.get(i).getRight()).append(" ");
-            }
-
-            // Append the last posting
-            entry.append(postingList.get(postingList.size() -1).getLeft()).append(":").append(postingList.get(postingList.size() - 1).getRight()).append("\n");
-            writeEntry(path, entry.toString());         // Write entry on file
-            entry.setLength(0);                         // Clear entry to start over with the new term
-        }
-
-        index.clear();      // empty index
-        num_index++;        // update the number of partial inverted indexes
-    }
-
-    /**
-     * Utility function writing an entry on disk.
-     * @param path: path to file on disk
-     * @param entry: entry to write on disk
-     */
-    private static void writeEntry(String path, String entry){
-        try {
-            Files.writeString(Paths.get(path), entry, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-        } catch (Exception e){
+            num_index++;        // update the number of partial inverted indexes
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -109,103 +77,84 @@ public class Spimi {
      * @param docid: docid of a document
      * @param postingList: postingList of a given term
      */
-    private static void updateOrAddPosting(int docid, ArrayList<MutablePair<Integer, Integer>> postingList){
+    private static void updateOrAddPosting(int docid, PostingList postingList){
         boolean found = false;
+
         // Iterate on each postingList
-        for(MutablePair<Integer, Integer> posting: postingList){    // docid found
-            if(docid == posting.getLeft()){
-                posting.setRight(posting.getRight() + 1);       //update frequency +1
+        for(Map.Entry<Integer, Integer> posting: postingList.getPostings()){
+            // If the docid is found, update the frequency
+            if(docid == posting.getKey()){
+                posting.setValue(posting.getValue() + 1);
                 found = true;
             }
         }
-        if(!found)          // document with the docid was not in posting list
-            postingList.add(new MutablePair<>(docid, 1));       //create new pair and add it
 
+        if(!found)
+            postingList.getPostings().add(new AbstractMap.SimpleEntry<>(docid, 1));
     }
 
-
-    /**
-     * Returns the posting list of a given term
-     * @param term: a string describing a word
-     * @return the posting list of the given term
-     */
-    private static ArrayList<MutablePair<Integer, Integer>> getPostingList(String term){
-        return index.get(term);
-    }
-
-    /**
-     * Creates the posting list of the given term
-     * @param term a string describing a word token
-     * @return
-     */
-    private static ArrayList<MutablePair<Integer, Integer>> createPostingList(String term){
-        ArrayList<MutablePair<Integer, Integer>> postingList = new ArrayList<>();   // create posting list
-        index.put(term, postingList);       // add entry to index
-        return postingList;
-    }
 
 
     public static void spimi(){
-        // First ensure the document index is created or cleaned
-        FileUtils.CreateOrCleanFile(PATH_TO_DOCUMENT_INDEX);
-
         // Use the BufferedReader to read processed docs line by line
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(PATH_TO_DOCUMENTS))) {
-            int pid;            // doc number of document
-            String[] terms;     // terms contained in the document
-            String[] document; // document[0] -> pid document[1] -> terms
+        try (DB db = DBMaker.fileDB(PATH_TO_DOCUMENTS).fileChannelEnable().fileMmapEnable().make();
+            DB docIndexDB = DBMaker.fileDB(PATH_TO_DOCUMENT_INDEX).fileChannelEnable().fileMmapEnable().make();
+            HTreeMap collection = db.hashMap("processedCollection")
+                    .keySerializer(Serializer.STRING)
+                    .valueSerializer(Serializer.JAVA)
+                    .createOrOpen();
 
-            String line;        // line read from disk
-            ArrayList<MutablePair<Integer, Integer>> posting;       // posting list of a given term
-            boolean allDocumentsProcessed = false;
+            HTreeMap<Integer, String> docIndex = docIndexDB.hashMap("docIndex")
+                    .keySerializer(Serializer.INTEGER)
+                    .valueSerializer(Serializer.STRING)
+                    .createOrOpen();
+            ) {
+                boolean allDocumentsProcessed = false;
 
-            int docid = 0;      // count for doc ids
+                int docid = 0;      // count for doc ids
 
-            while(!allDocumentsProcessed) {
-                // Parse each line to extract the docid and terms
-
-                while(Runtime.getRuntime().freeMemory() > MEMORY_THRESHOLD){
+                while(!allDocumentsProcessed) {
                     // Build the index until memory is available with memory threshold
-                    System.out.println(Runtime.getRuntime().freeMemory());
+                    HashMap<String, PostingList> index = new HashMap<>();
 
-                    line = br.readLine();
-                    if(line == null){           // If all documents are processed
-                        allDocumentsProcessed = true;
-                        break;
-                    }
+                    while(Runtime.getRuntime().freeMemory() > MEMORY_THRESHOLD){
+                    // Build the index until memory is available with memory threshold
+                    //System.out.println(Runtime.getRuntime().freeMemory());
 
-                    // Writes an entry to the document index file to get pid and all terms of a doc
-                    document = line.split("\t");
-                    pid = Integer.parseInt(document[0]);
-                    if(document.length > 1) {
-                        terms = document[1].split(",");
+                        Iterator<String> keyIterator = (Iterator<String>) collection.keySet().iterator();
+                        if(!keyIterator.hasNext()){
+                            // If all documents are processed
+                            allDocumentsProcessed = true;
+                            break;
+                        }
+                        // Get the next document from the collection
+                        ProcessedDocumentDTO document = new ProcessedDocumentDTO();
+                        String pid = keyIterator.next();
+                        document.setPid(pid);
+                        document.setTokens((ArrayList<String>) collection.get(pid));
 
-                        // Write to index and save unto disk in format docid \t pid, document_length \n
-                        String entry = docid++ + "\t" + pid + "," + terms.length + "\n";
-
-                        writeEntry(PATH_TO_DOCUMENT_INDEX, entry);
-                        System.out.println(docid);
-
-                        // For each term, updates and creates a posting list in the index
-                        for(String term : terms) {
-                            if(!index.containsKey(term)) {
-                                // Create new posting list if the term was not present
-                                posting = createPostingList(term);
-                            } else {
-                                // Term is present, so get its posting list
-                                posting = getPostingList(term);
+                        // Add the document to the document index in the format docid -> pid, doc_length \n
+                        String entry = docid++ + "\t" + pid + ", " + document.getTokens().size() + "\n";
+                        docIndex.put(docid, entry);
+                        System.out.println("Docid: " + docid + " PID: " + pid);
+                        CollectionStats.addDocument();
+                        for(String term: document.getTokens()){
+                            PostingList posting;
+                            // If the term is already present in the index
+                            if(!index.containsKey(term)){
+                                // Create a new posting list
+                                posting = new PostingList(term);
+                                index.put(term, posting);
+                            }else{
+                                // Get the posting list for the term from the index
+                                posting = index.get(term);
                             }
-
-                            // Insert or update the new posting
+                            // Insert/Update the posting list with the docid
                             updateOrAddPosting(docid, posting);
                         }
+                        saveIndexToDisk(index);
                     }
                 }
-
-                // If the available memory falls below the threshold or all docs processed,
-                // Flash the current in-memory index to disk
-                save_index_to_disk(PATH_BASE_TO_INDEX + num_index + ".txt");
-            }
             Utility.setNumIndexes(num_index);
         }catch (Exception e){
             e.printStackTrace();

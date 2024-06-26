@@ -43,8 +43,6 @@ public class Merger {
      */
     private static int openIndexes;
 
-    private static final ArrayList<VocabularyEntry> vocabulary = new ArrayList<>();
-
     /**
      * Method that initializes data structures and opens buffers
      * and initializing the lists pointing to first term to process
@@ -120,6 +118,12 @@ public class Merger {
     private static String getMinTerm(){
         String term = nextTerm.get(0);
         for(String elem: nextTerm){
+            if(term == null){
+                term = elem;
+                continue;
+            }
+            if(elem == null) continue;
+
             if(elem.compareTo(term) < 0){
                 term = elem;
             }
@@ -144,7 +148,6 @@ public class Merger {
                 String termToProcess = getMinTerm();
                 PostingList finalList = new PostingList();
                 finalList.setTerm(termToProcess);
-
                 
                 VocabularyEntry vocabularyEntry = new VocabularyEntry(termToProcess);
                 for(int i = 0; i < Utility.getNumIndexes(); i++){

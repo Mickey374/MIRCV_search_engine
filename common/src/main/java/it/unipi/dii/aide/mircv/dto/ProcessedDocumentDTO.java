@@ -1,6 +1,7 @@
 package it.unipi.dii.aide.mircv.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * DTO Object for the processed class
@@ -10,23 +11,21 @@ public class ProcessedDocumentDTO {
     /**
      * Document Process Identifier (PID)
      */
-    @JsonProperty("pid")
-    private int pid;
+    private String pid;
 
     /**
      * Array with all processed terms
      */
-    @JsonProperty("tokens")
-    private String[] tokens;
+    private ArrayList<String> tokens;
 
     /**
      * Constructor of a document
      * @param pid PID of the doc
      * @param tokens array of processed tokens
      */
-    public ProcessedDocumentDTO(int pid, String[] tokens){
+    public ProcessedDocumentDTO(String pid, String[] tokens){
         this.pid = pid;
-        this.tokens = tokens;
+        this.tokens = new ArrayList<>(List.of(tokens));
     }
 
     /**
@@ -39,7 +38,7 @@ public class ProcessedDocumentDTO {
      *
      * @return the document PID
      */
-    public int getPid() {
+    public String getPid() {
         return pid;
     }
 
@@ -47,7 +46,7 @@ public class ProcessedDocumentDTO {
      *
      * @param pid the PID to set
      */
-    public void setPid(int pid) {
+    public void setPid(String pid) {
         this.pid = pid;
     }
 
@@ -55,7 +54,7 @@ public class ProcessedDocumentDTO {
      *
      * @return the array of the tokens
      */
-    public String[] getTokens() {
+    public ArrayList<String> getTokens() {
         return tokens;
     }
 
@@ -63,27 +62,32 @@ public class ProcessedDocumentDTO {
      *
      * @param tokens The tokens set for the document
      */
-    public void setTokens(String[] tokens) {
+    public void setTokens(ArrayList<String> tokens) {
         this.tokens = tokens;
     }
 
+    /*
+        * Returns the processed document as a string formatted in this way:
+        * @return the string representation of the document
+        * PID [token[0], token[1], ...]
+     */
     public String toString() {
         StringBuilder str = new StringBuilder(pid + "\t");
 
         // If token length is empty/zero
-        if(tokens.length == 0){
+        if(tokens.isEmpty()){
             str.append("\n");
             return str.toString();
         }
 
         // Append to the StringBuilder all tokens separated by ','
-        for(int i=0; i < tokens.length -1; i++){
-            str.append(tokens[i]);
+        for(int i=0; i < tokens.size() -1; i++){
+            str.append(tokens.get(i));
             str.append(',');
         }
 
         // Last token should be without comma & also newline
-        str.append(tokens[tokens.length -1]);
+        str.append(tokens.get(tokens.size() -1));
         str.append('\n');
         return str.toString();
     }

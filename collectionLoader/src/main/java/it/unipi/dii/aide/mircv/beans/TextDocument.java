@@ -4,7 +4,7 @@ public class TextDocument {
     /**
      * id for the document
      **/
-    private int pid;
+    private String pid;
 
     /**
      * text of the document
@@ -16,7 +16,7 @@ public class TextDocument {
      * @param pid the document's identifier
      * @param text the document's payload
      */
-    public TextDocument(int pid, String text){
+    public TextDocument(String pid, String text){
         this.pid = pid;
         this.text = text;
     }
@@ -25,7 +25,7 @@ public class TextDocument {
      * gets the identifier
      * @return the identifier of the document
      */
-    public int getPid(){
+    public String getPid(){
         return pid;
     }
 
@@ -33,7 +33,7 @@ public class TextDocument {
      * sets the pid
      * @param pid the identifier of the document
      */
-    public void setPid(int pid){
+    public void setPid(String pid){
         this.pid = pid;
     }
 
@@ -58,6 +58,6 @@ public class TextDocument {
      * @return the formatted string
      */
     public String toString(){
-        return Integer.toString(pid) + "\t" + text + "\n";
+        return pid + "\t" + text + "\n";
     }
 }

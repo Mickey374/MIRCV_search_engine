@@ -21,52 +21,52 @@ import static it.unipi.dii.aide.mircv.utils.FileUtils.CreateOrCleanFile;
  */
 public class Main {
 
-    /**
-     * Path to the Raw collection
-     */
-    private static final String PATH_TO_COLLECTION = ConfigurationParams.getRawCollectionPath();
-
-    /**
-     * Path to the Document Collection processed
-     */
-    private static final String OUTPUT_PATH = ConfigurationParams.getProcessedCollectionPath();
-
-
-    /**
-     * Main Method for the Processing module
-     */
-    public static void main(String[] args) {
-        // Load the stopwords into the Preprocessor
-        Preprocessor.readStopwords();
-
-        // Clean or Create the Output file
-        CreateOrCleanFile(OUTPUT_PATH);
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(PATH_TO_COLLECTION), StandardCharsets.UTF_8)){
-            String[] split;
-            for(String line; (line = br.readLine()) != null;){
-
-                // If line is empty then process the next line
-                if(line.isEmpty()) continue;
-
-                // Split the line in the format <pid>\t<text>
-                split = line.split("\t");
-
-                // Creation of the text document for the line
-                TextDocument document = new TextDocument(Integer.parseInt(split[0]), split[1].replaceAll("[^\\x00-\\x7F]", ""));
-
-                // Perform the text preprocessing on the document
-                ProcessedDocumentDTO processedDocument = Preprocessor.processDocument(document);
-
-                if(processedDocument.getTokens().length > 0){
-                    // Save it to the File if body is non empty
-                    Files.writeString(Paths.get(OUTPUT_PATH), processedDocument.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
-                }
-
-                // Update the number of Documents
-                CollectionStats.addDocument();
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+//    /**
+//     * Path to the Raw collection
+//     */
+//    private static final String PATH_TO_COLLECTION = ConfigurationParams.getRawCollectionPath();
+//
+//    /**
+//     * Path to the Document Collection processed
+//     */
+//    private static final String OUTPUT_PATH = ConfigurationParams.getProcessedCollectionPath();
+//
+//
+//    /**
+//     * Main Method for the Processing module
+//     */
+//    public static void main(String[] args) {
+//        // Load the stopwords into the Preprocessor
+//        Preprocessor.readStopwords();
+//
+//        // Clean or Create the Output file
+//        CreateOrCleanFile(OUTPUT_PATH);
+//        try (BufferedReader br = Files.newBufferedReader(Paths.get(PATH_TO_COLLECTION), StandardCharsets.UTF_8)){
+//            String[] split;
+//            for(String line; (line = br.readLine()) != null;){
+//
+//                // If line is empty then process the next line
+//                if(line.isEmpty()) continue;
+//
+//                // Split the line in the format <pid>\t<text>
+//                split = line.split("\t");
+//
+//                // Creation of the text document for the line
+//                TextDocument document = new TextDocument(Integer.parseInt(split[0]), split[1].replaceAll("[^\\x00-\\x7F]", ""));
+//
+//                // Perform the text preprocessing on the document
+//                ProcessedDocumentDTO processedDocument = Preprocessor.processDocument(document);
+//
+//                if(processedDocument.getTokens().length > 0){
+//                    // Save it to the File if body is non empty
+//                    Files.writeString(Paths.get(OUTPUT_PATH), processedDocument.toString(), StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+//                }
+//
+//                // Update the number of Documents
+//                CollectionStats.addDocument();
+//            }
+//        } catch (Exception e){
+//            e.printStackTrace();
+//        }
+//    }
 }
