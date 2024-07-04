@@ -4,6 +4,8 @@ import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import static it.unipi.dii.aide.mircv.utils.FileUtils.createIfNotExists;
 
 import java.io.IOException;
+import java.io.Serializable;
+import java.io.Serial;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -14,16 +16,17 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class PostingList {
+public class PostingList implements Serializable{
 
     private String term;
-    private final ArrayList<Map.Entry<Integer, Integer>> postings = new ArrayList<>();
+    private ArrayList<Map.Entry<Integer, Integer>> postings = new ArrayList<>();
     private final static String PATH_TO_INVERTED_INDEX = ConfigurationParams.getInvertedIndexPath();
 
     public PostingList(String toParse) {
         String[] termRow = toParse.split("\t");
         this.term = termRow[0];
-        parsePostings(termRow[1]);
+        if (termRow.length > 1)
+            parsePostings(termRow[1]);
     }
 
     public PostingList(){}
@@ -44,9 +47,8 @@ public class PostingList {
         return postings;
     }
 
-    public String setTerm(String term){
+    public void setTerm(String term){
         this.term = term;
-        return term;
     }
 
     public void appendPostings(ArrayList<Map.Entry<Integer, Integer>> newPostings){
@@ -73,7 +75,7 @@ public class PostingList {
             MappedByteBuffer docsBuf = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset, numBytes/2);
 
             // Instantiate the MappedByteBuffer for integer list of freqs
-            MappedByteBuffer freqBuf = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset, numBytes/2);
+            MappedByteBuffer freqBuf = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset+numBytes/2, numBytes/2);
 
             // Check if the MappedByteBuffers are correctly instantiated
             if (docsBuf != null && freqBuf != null) {
@@ -92,5 +94,25 @@ public class PostingList {
             System.out.println("I/O Error " + e);
         }
         return -1;
+    }
+
+    @Override
+    public String toString() {
+        return "PostingList{" +
+                "term='" + term + '\'' +
+                ", postings=" + postings +
+                '}';
+    }
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.writeObject(term);
+        out.writeObject(postings);
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        term = in.readUTF();
+        postings = (ArrayList<Map.Entry<Integer, Integer>>) in.readObject();
     }
 }
