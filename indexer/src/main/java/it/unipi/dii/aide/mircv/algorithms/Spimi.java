@@ -28,9 +28,6 @@ public class Spimi {
     // Memory alloc to be kept free
     private static final long MEMORY_THRESHOLD = 80000000;
 
-    // Hashmap to store the partial Inverted index
-    //private static HashMap<String, ArrayList<MutablePair<Integer, Integer>>> index = new HashMap<>();
-
     // Counter for the partial indexes created
     private static int num_index = 0;
 
@@ -192,6 +189,8 @@ public class Spimi {
                 // Save the partial index to disk
                 saveIndexToDisk(index, partialIndex);
             }
+            // TODO: Decide if the num_indexes can be the return of Spimi and pass it to merger
+
             // Keeps track of the number of partial indexes created
             Utility.setNumIndexes(num_index);
         } catch (Exception e) {
