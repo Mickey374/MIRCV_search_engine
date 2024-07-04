@@ -115,7 +115,7 @@ public class Spimi {
 
                 while(!allDocumentsProcessed) {
                     // Build the index until memory is available with memory threshold
-                    HashMap<String, PostingList> index = new HashMap<>();
+                    HashMap<String, PostingList> index = new HashMap<>();;
 
                     while(Runtime.getRuntime().freeMemory() > MEMORY_THRESHOLD){
                     // Build the index until memory is available with memory threshold
@@ -134,7 +134,7 @@ public class Spimi {
                         document.setTokens((ArrayList<String>) collection.get(pid));
 
                         // Add the document to the document index in the format docid -> pid, doc_length \n
-                        String entry = docid++ + "\t" + pid + ", " + document.getTokens().size() + "\n";
+                        String entry = docid++ + "\t" + pid + "," + document.getTokens().size() + "\n";
                         docIndex.put(docid, entry);
                         System.out.println("Docid: " + docid + " PID: " + pid);
                         CollectionStats.addDocument();

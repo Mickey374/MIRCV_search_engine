@@ -73,7 +73,7 @@ public class MapDBLoader {
                 // Perform the text preprocessing on the document
                 ProcessedDocumentDTO processedDocument = Preprocessor.processDocument(document);
 
-                if (processedDocument.getTokens().size() > 0) {
+                if (!processedDocument.getTokens().isEmpty()) {
                     // Save it to the File if body is non-empty
                     processedCollection.put(processedDocument.getPid(), processedDocument.getTokens());
 
