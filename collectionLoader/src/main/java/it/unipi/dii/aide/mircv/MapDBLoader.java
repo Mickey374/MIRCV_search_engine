@@ -18,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import static it.unipi.dii.aide.mircv.utils.FileUtils.removeFile;
+
 
 public class MapDBLoader {
         /**
@@ -34,7 +36,7 @@ public class MapDBLoader {
     /**
      * Main Method for the Processing module
      * @param args input params for the main method
-     * @throws Exception
+     * @throws IOException if the file is not found
      * <ol>
      *     <li>Load the stopwords into the Preprocessor</li>
      *     <li>Read the collection line by line</li>
@@ -49,6 +51,9 @@ public class MapDBLoader {
     public static void main(String[] args) throws IOException {
         // Load the stopwords into the Preprocessor
         Preprocessor.readStopwords();
+
+        // Remove the file if it exists
+        removeFile(OUTPUT_PATH);
 
         // Create a DB
         try(BufferedReader br = Files.newBufferedReader(Paths.get(PATH_TO_COLLECTION), StandardCharsets.UTF_8);
@@ -73,13 +78,12 @@ public class MapDBLoader {
                 // Perform the text preprocessing on the document
                 ProcessedDocumentDTO processedDocument = Preprocessor.processDocument(document);
 
-                if (!processedDocument.getTokens().isEmpty()) {
+                if (processedDocument.getTokens().isEmpty())
                     // Save it to the File if body is non-empty
                     processedCollection.put(processedDocument.getPid(), processedDocument.getTokens());
 
-                    // Update the number of Documents
-                    CollectionStats.addDocument();
-                }
+                // Update the number of Documents
+                CollectionStats.addDocument();
             }
         } catch(Exception e){
             e.printStackTrace();

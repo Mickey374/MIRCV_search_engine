@@ -63,10 +63,7 @@ public class PostingList implements Serializable{
     public int saveToDisk(long memoryOffset){
         // For each posting, we store the docId and the freq.
         // Each integer will occupy 4 bytes since integers are stored in byte arrays
-        int numBytes = postings.size()*4*2;
-
-        // Create the inverted index's file if not exists
-        createIfNotExists(PATH_TO_INVERTED_INDEX);
+        int numBytes = getNumBytes();
 
         // Try to open the file channel to the file of the inverted index
         try (FileChannel fChan = (FileChannel) Files.newByteChannel(Paths.get(PATH_TO_INVERTED_INDEX), StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)){
@@ -113,7 +110,7 @@ public class PostingList implements Serializable{
 
     @Serial
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.writeObject(term);
+        out.writeUTF(term);
         out.writeObject(postings);
     }
 

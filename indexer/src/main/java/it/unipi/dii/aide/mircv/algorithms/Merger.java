@@ -7,9 +7,7 @@ import it.unipi.dii.aide.mircv.utils.Utility;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Class implementing the merge of the Single Pass In Memory Indexing algorithm for Intermediate Posting Lists
@@ -26,11 +24,6 @@ public class Merger {
     private static final String INTERMEDIATE_INDEX_PATH = ConfigurationParams.getPartialIndexPath();
 
     /**
-     * Num of Open Indexes to process: When 0, means all indexes are processed
-     */
-    private static int openIndexes;
-
-    /**
      * Number of intermediate indexes to process
      */
     private static final int NUM_INTERMEDIATE_INDEXES = Utility.getNumIndexes();
@@ -41,52 +34,31 @@ public class Merger {
     private static final String PATH_TO_VOCABULARY = ConfigurationParams.getVocabularyPath();
 
     /**
-     * Path to the inverted index file for Map DB
-     */
-    private static final ArrayList<DB> mapped_dbs = new ArrayList<>();
-
-    /**
      * Memory mapped Intermediate indexes to be merged
      */
-    private static final Map<Integer, ArrayList<PostingList>> intermediateIndexes = new HashMap<>();
+    private static final Map<Integer, Iterator<PostingList>> intermediateIndexes = new HashMap<>();
 
     /**
      * Vocabulary list to store the vocabulary entries
      */
-    private static ArrayList<VocabularyEntry> vocabulary;
+    private static List<VocabularyEntry> vocabulary;
 
 
     // TODO: Convert the NUM_INVERTED_INDEXES mapped databases into a single collection of intermediate inverted indexes
 
 
     /**
-     * Buffers for the intermediate indexes
+     * Method that initializes the data structures
+     * @param dbInd the inverted index database
+     * @param dbVoc the vocabulary database
      */
-    private static void initialize() {
-        openIndexes = NUM_INTERMEDIATE_INDEXES;
+    private static void initialize(DB dbInd, DB dbVoc) {
+        // Initialize the vocabulary list
+        vocabulary = (List<VocabularyEntry>) dbVoc.indexTreeList("vocabulary", Serializer.JAVA).createOrOpen();
 
-        for (int i = 0; i < openIndexes; i++) {
-            // Try to open intermediate index 'i' file
-            try {
-                DB db = DBMaker.fileDB(INTERMEDIATE_INDEX_PATH + i + ".db").fileChannelEnable().fileMmapEnable().make();
-                mapped_dbs.add(db);
-                intermediateIndexes.put(i, (ArrayList<PostingList>) db.indexTreeList("index_" + i, Serializer.JAVA).createOrOpen());
-            } catch (Exception e) {
-                e.printStackTrace();
-                mapped_dbs.add(i, null);
-                openIndexes--;
-            }
-        }
-    }
-
-    /**
-     * Method that cleans the data structures and closes the buffers
-     */
-    private static void clean() {
-        // TODO: Change this to a single mapped db for multiple indexes
-        // Close the map databases for each mapped db
         for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
-            mapped_dbs.get(i).close();
+            List<PostingList> list = (List<PostingList>) dbInd.indexTreeList("index_" + i, Serializer.JAVA).createOrOpen();
+            intermediateIndexes.put(i, list.iterator());
         }
     }
 
@@ -101,11 +73,11 @@ public class Merger {
 
         for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
             // If the term is not null and the term is less than the current term
-            if (intermediateIndexes.get(i) == null || intermediateIndexes.get(i).get(0) == null)
+            if (intermediateIndexes.get(i) == null || intermediateIndexes.get(i).hasNext())
                 continue;
 
             // Next term to be processed at the intermediate index 'i'
-            String nextTerm = intermediateIndexes.get(i).get(0).getTerm();
+            String nextTerm = intermediateIndexes.get(i).next().getTerm();
 
             // If the term is null, skip to the next term
             if (term == null) {
@@ -140,28 +112,26 @@ public class Merger {
         // Iterate over the intermediate indexes
         for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
             // If a matching term is found
-            if (intermediateIndexes.get(i) != null && intermediateIndexes.get(i).get(0) != null && intermediateIndexes.get(i).get(0).getTerm().equals(term)) {
+            if (intermediateIndexes.get(i) != null && intermediateIndexes.get(i).hasNext()) {
                 // Get the posting list from the intermediate index
-                PostingList intermediatePostingList = intermediateIndexes.get(i).get(0);
+                PostingList intermediatePostingList = intermediateIndexes.get(i).next();
 
-                // Compute the memory occupancy of the posting list
-                numBytes += intermediatePostingList.getNumBytes();
+                if(intermediatePostingList.getTerm().equals(term)) {
+                    // Compute the memory occupancy of the posting list
+                    numBytes += intermediatePostingList.getNumBytes();
 
-                // Append the posting list to the final posting list of the term
-                finalList.appendPostings(intermediatePostingList.getPostings());
+                    // Append the posting list to the final posting list of the term
+                    finalList.appendPostings(intermediatePostingList.getPostings());
 
-                // Update vocabulary statistics
-                vocabularyEntry.updateStatistics(intermediatePostingList);
+                    // Update vocabulary statistics
+                    vocabularyEntry.updateStatistics(intermediatePostingList);
 
-                // Update the lists for the scanned index
-                intermediateIndexes.get(i).remove(0);
 
-                // Check if the intermediate index is empty
-                if (intermediateIndexes.get(i).get(0) == null) {
-                    intermediateIndexes.replace(i, null);
+                    // Check if the intermediate index is empty
+                    if (intermediateIndexes.get(i).hasNext()) {
+                        intermediateIndexes.replace(i, null);
 
-                    // Decrease the number of open indexes
-                    openIndexes--;
+                    }
                 }
             }
         }
@@ -180,18 +150,19 @@ public class Merger {
     }
 
     public static boolean mergeIndexes() {
-        try (DB db = DBMaker.fileDB(PATH_TO_VOCABULARY).fileChannelEnable().fileMmapEnable().make()) {
-            // Create the vocabulary list
-            vocabulary = (ArrayList<VocabularyEntry>) db.indexTreeList("vocabulary", Serializer.JAVA).createOrOpen();
+        try (DB dbInd = DBMaker.fileDB(INTERMEDIATE_INDEX_PATH).fileChannelEnable().fileMmapEnable().make();
+             DB dbVoc = DBMaker.fileDB(PATH_TO_VOCABULARY).fileChannelEnable().fileMmapEnable().make()){
 
             // Initialize the data structures
-            initialize();
-
+            initialize(dbInd, dbVoc);
 
             // Process the intermediate indexes
-            while (openIndexes > 0) {
+            while (true) {
                 // Get the minimum term in lexicographical order
                 String termToProcess = getMinTerm();
+
+                if(termToProcess == null)
+                    break;
 
                 // Process the termToProcess
                 PostingList mergedPostingList = processTerm(termToProcess);

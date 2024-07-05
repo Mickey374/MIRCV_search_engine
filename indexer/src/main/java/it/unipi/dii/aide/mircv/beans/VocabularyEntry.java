@@ -4,6 +4,9 @@ import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.utils.CollectionStats;
 import java.util.Map;
 import java.io.IOException;
+import java.io.Serializable;
+import java.io.Serial;
+import java.util.ArrayList;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -14,7 +17,7 @@ import static it.unipi.dii.aide.mircv.utils.FileUtils.createIfNotExists;
 /**
  * Entry of the vocabulary for a term
  */
-public class VocabularyEntry {
+public class VocabularyEntry implements Serializable {
     /**
      * Counter for the terms used in termId
      */
@@ -23,7 +26,7 @@ public class VocabularyEntry {
     /**
      * termid of the specific term
      */
-    private final int termid;
+    private int termid;
 
     /**
      * Term for the vocabulary entry
@@ -135,5 +138,27 @@ public class VocabularyEntry {
 
     public void setMemoryOffset(int memoryOffset) {
         this.memoryOffset = memoryOffset;
+    }
+
+    @Serial
+    private void writeObject(java.io.ObjectOutputStream stream) throws IOException {
+        stream.writeUTF(term);
+        stream.writeInt(termid);
+        stream.writeInt(df);
+        stream.writeInt(tf);
+        stream.writeDouble(idf);
+        stream.writeLong(memoryOffset);
+        stream.writeLong(memorySize);
+    }
+
+    @Serial
+    private void readObject(java.io.ObjectInputStream stream) throws IOException, ClassNotFoundException {
+        term = stream.readUTF();
+        termid = stream.readInt();
+        df = stream.readInt();
+        tf = stream.readInt();
+        idf = stream.readDouble();
+        memoryOffset = stream.readLong();
+        memorySize = stream.readLong();
     }
 }

@@ -193,6 +193,7 @@ public class Spimi {
 
             // Keeps track of the number of partial indexes created
             Utility.setNumIndexes(num_index);
+            System.out.println("Number of Indexes: " + Utility.getNumIndexes());
         } catch (Exception e) {
             e.printStackTrace();
         }

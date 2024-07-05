@@ -45,4 +45,14 @@ public class FileUtils {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Removes the file if it exists
+     * @param path is the path of the file to be removed
+     */
+    public static void removeFile(String path) {
+        File file = new File(path);
+        if (file.exists())
+            file.delete();
+    }
 }
