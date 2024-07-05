@@ -56,10 +56,9 @@ public class PostingList implements Serializable{
     }
 
     /**
-     * Save the Posting lists as a 2 byte array: 1. DocIds 2. Frequencies
-     * @param memoryOffset the memory offset in the inverted file at which posting
-     * list will be stored.
-     * @return
+     * Function to save the posting list to disk
+     * @param memoryOffset: the memory offset where the posting list will be saved
+     * @return the number of bytes written to disk
      */
     public int saveToDisk(long memoryOffset){
         // For each posting, we store the docId and the freq.
@@ -94,6 +93,14 @@ public class PostingList implements Serializable{
             System.out.println("I/O Error " + e);
         }
         return -1;
+    }
+
+    /**
+     * method to get the number of bytes occupied by the posting list when stored in memory
+     * @return the number of bytes occupied by the posting list in bytes
+     */
+    public int getNumBytes(){
+        return postings.size()*4*2;
     }
 
     @Override

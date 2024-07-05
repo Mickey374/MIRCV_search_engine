@@ -7,5 +7,6 @@ public class Main {
     public static void main(String[] args) {
         Spimi.executeSpimi();
         Merger.mergeIndexes();
+        System.out.println("Indexing completed!");
     }
 }

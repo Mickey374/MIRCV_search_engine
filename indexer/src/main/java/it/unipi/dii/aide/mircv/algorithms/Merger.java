@@ -2,41 +2,28 @@ package it.unipi.dii.aide.mircv.algorithms;
 
 import it.unipi.dii.aide.mircv.beans.PostingList;
 import it.unipi.dii.aide.mircv.beans.VocabularyEntry;
+import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.utils.Utility;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 
 /**
- * Class implementing the Single Pass In Memory Indexing algorithm for Intermediate Posting Lists
+ * Class implementing the merge of the Single Pass In Memory Indexing algorithm for Intermediate Posting Lists
  */
 public class Merger {
     /**
-     * List of BufferReaders for each intermediate index.
-     * If the value is null, it means index has been processed already
+     * Memory offset for the inverted index
      */
-    private static final ArrayList<BufferedReader> buffers = new ArrayList<>();
-
-    /**
-     * Contains the list of next terms to process in a lexicographic order for intermediate index
-     * If the value is null, it means index has been processed already
-     */
-    private static final ArrayList<String> nextTerm = new ArrayList<>();
-
-    /**
-     * Contains list of next posting list to process for intermediate indexes
-     * If the value is set to null, the index has been fully processed
-     */
-    private static final ArrayList<PostingList> nextPostingList = new ArrayList<>();
+    private static long memOffset = 0;
 
     /**
      * Standard pathname for intermediate index files.
      */
-    private static final String INTERMEDIATE_INDEX_PATH = "data/index/index_";
+    private static final String INTERMEDIATE_INDEX_PATH = ConfigurationParams.getPartialIndexPath();
 
     /**
      * Num of Open Indexes to process: When 0, means all indexes are processed
@@ -44,147 +31,181 @@ public class Merger {
     private static int openIndexes;
 
     /**
-     * Method that initializes data structures and opens buffers
-     * and initializing the lists pointing to first term to process
-     * in each index.
-     * @throws Exception related to buffer opening and handling.
+     * Number of intermediate indexes to process
      */
-    private static void initialize() throws Exception{
-        openIndexes = Utility.getNumIndexes();
+    private static final int NUM_INTERMEDIATE_INDEXES = Utility.getNumIndexes();
 
-        // number of empty buffers
-        int emptyIndexes = 0;
+    /**
+     * Path to the vocabulary file for Map DB
+     */
+    private static final String PATH_TO_VOCABULARY = ConfigurationParams.getVocabularyPath();
 
-        for(int i=0; i< openIndexes; i++){
-            String path = INTERMEDIATE_INDEX_PATH + i + ".txt";
+    /**
+     * Path to the inverted index file for Map DB
+     */
+    private static final ArrayList<DB> mapped_dbs = new ArrayList<>();
 
-            BufferedReader buffer = Files.newBufferedReader(Paths.get(path), StandardCharsets.UTF_8);
-            String line = buffer.readLine();
+    /**
+     * Memory mapped Intermediate indexes to be merged
+     */
+    private static final Map<Integer, ArrayList<PostingList>> intermediateIndexes = new HashMap<>();
 
-            // If buffer is empty, then add null to its position
-            if(line == null) {
-                buffers.add(null);
-                nextTerm.add(null);
-                nextPostingList.add(null);
+    /**
+     * Vocabulary list to store the vocabulary entries
+     */
+    private static ArrayList<VocabularyEntry> vocabulary;
 
-                // Increase the number of empty indexes
-                emptyIndexes++;
-                continue;
+
+    // TODO: Convert the NUM_INVERTED_INDEXES mapped databases into a single collection of intermediate inverted indexes
+
+
+    /**
+     * Buffers for the intermediate indexes
+     */
+    private static void initialize() {
+        openIndexes = NUM_INTERMEDIATE_INDEXES;
+
+        for (int i = 0; i < openIndexes; i++) {
+            // Try to open intermediate index 'i' file
+            try {
+                DB db = DBMaker.fileDB(INTERMEDIATE_INDEX_PATH + i + ".db").fileChannelEnable().fileMmapEnable().make();
+                mapped_dbs.add(db);
+                intermediateIndexes.put(i, (ArrayList<PostingList>) db.indexTreeList("index_" + i, Serializer.JAVA).createOrOpen());
+            } catch (Exception e) {
+                e.printStackTrace();
+                mapped_dbs.add(i, null);
+                openIndexes--;
             }
-
-            PostingList list = new PostingList(line);
-
-            buffers.add(buffer);
-            nextTerm.add(list.getTerm());
-            nextPostingList.add(list);
         }
-
-        // Fix the number of open buffers by removing the null buffers
-        openIndexes -= emptyIndexes;
     }
 
     /**
-     * Read a new line from a buffer and update the data structures related to the index
-     * @param i the number of the intermediate index
-     * @throws IOException exception related to the buffer handling and close
+     * Method that cleans the data structures and closes the buffers
      */
-    private static void readBufferLine(int i) throws IOException{
-        String line = buffers.get(i).readLine();
-
-        // If the buffer is empty, close it and set it to null for the pointers
-        if(line == null){
-            buffers.get(i).close();
-            buffers.set(i, null);
-            nextTerm.set(i, null);
-            nextPostingList.set(i, null);
-
-            // Decrease the number of open indexes
-            openIndexes--;
-            return;
+    private static void clean() {
+        // TODO: Change this to a single mapped db for multiple indexes
+        // Close the map databases for each mapped db
+        for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
+            mapped_dbs.get(i).close();
         }
-
-        // Create the new posting list
-        PostingList list = new PostingList(line);
-
-        // Update the correct entry of the lists
-        nextTerm.set(i, list.getTerm());
-        nextPostingList.set(i, list);
     }
+
 
     /**
      * Return the minimum term of the nextTerm list in lexicographical order
+     *
      * @return the next term to process
      */
-    private static String getMinTerm(){
-        String term = nextTerm.get(0);
-        for(String elem: nextTerm){
-            if(term == null){
-                term = elem;
+    private static String getMinTerm() {
+        String term = null;
+
+        for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
+            // If the term is not null and the term is less than the current term
+            if (intermediateIndexes.get(i) == null || intermediateIndexes.get(i).get(0) == null)
+                continue;
+
+            // Next term to be processed at the intermediate index 'i'
+            String nextTerm = intermediateIndexes.get(i).get(0).getTerm();
+
+            // If the term is null, skip to the next term
+            if (term == null) {
+                term = nextTerm;
                 continue;
             }
-            if(elem == null) continue;
 
-            if(elem.compareTo(term) < 0){
-                term = elem;
-            }
+            // If the next term is less than the current term, update the term
+            if (nextTerm.compareTo(term) < 0)
+                term = nextTerm;
         }
         return term;
     }
 
     /**
-     * Find the min term between the indexes creates
-     * the whole posting list and vocabulary entry for that term
-     * stores them in memory. Update the pointers by scanning the
-     * intermediate indexes.
-     * @return true if the merging is complete, false otherwise
+     * Process the term and merge the posting lists
+     *
+     * @param term the term to process
+     * @return the final posting list for the term
      */
-    public static boolean mergeIndexes(){
-        try {
+    public static PostingList processTerm(String term) {
+        // New posting list for the term
+        PostingList finalList = new PostingList();
+        finalList.setTerm(term);
+
+        // new Vocabulary entry for the term
+        VocabularyEntry vocabularyEntry = new VocabularyEntry(term);
+
+        // Total space occupied in bytes by the posting list
+        long numBytes = 0;
+
+        // Iterate over the intermediate indexes
+        for (int i = 0; i < NUM_INTERMEDIATE_INDEXES; i++) {
+            // If a matching term is found
+            if (intermediateIndexes.get(i) != null && intermediateIndexes.get(i).get(0) != null && intermediateIndexes.get(i).get(0).getTerm().equals(term)) {
+                // Get the posting list from the intermediate index
+                PostingList intermediatePostingList = intermediateIndexes.get(i).get(0);
+
+                // Compute the memory occupancy of the posting list
+                numBytes += intermediatePostingList.getNumBytes();
+
+                // Append the posting list to the final posting list of the term
+                finalList.appendPostings(intermediatePostingList.getPostings());
+
+                // Update vocabulary statistics
+                vocabularyEntry.updateStatistics(intermediatePostingList);
+
+                // Update the lists for the scanned index
+                intermediateIndexes.get(i).remove(0);
+
+                // Check if the intermediate index is empty
+                if (intermediateIndexes.get(i).get(0) == null) {
+                    intermediateIndexes.replace(i, null);
+
+                    // Decrease the number of open indexes
+                    openIndexes--;
+                }
+            }
+        }
+        // Writing to vocabulary the space occupancy and the memory offset for the posting list
+        vocabularyEntry.setMemorySize((int) numBytes);
+        vocabularyEntry.setMemoryOffset((int) memOffset);
+
+        // Compute final IDF
+        vocabularyEntry.computeIDF();
+
+        // Add Vocabulary entry to the vocabulary list
+        vocabulary.add(vocabularyEntry);
+
+        // Return the final posting list
+        return finalList;
+    }
+
+    public static boolean mergeIndexes() {
+        try (DB db = DBMaker.fileDB(PATH_TO_VOCABULARY).fileChannelEnable().fileMmapEnable().make()) {
+            // Create the vocabulary list
+            vocabulary = (ArrayList<VocabularyEntry>) db.indexTreeList("vocabulary", Serializer.JAVA).createOrOpen();
+
+            // Initialize the data structures
             initialize();
 
-            int memOffset = 0;
 
-            while (openIndexes > 0){
+            // Process the intermediate indexes
+            while (openIndexes > 0) {
+                // Get the minimum term in lexicographical order
                 String termToProcess = getMinTerm();
-                PostingList finalList = new PostingList();
-                finalList.setTerm(termToProcess);
-                
-                VocabularyEntry vocabularyEntry = new VocabularyEntry(termToProcess);
-                for(int i = 0; i < Utility.getNumIndexes(); i++){
-                    // Found matching term
-                    if(nextTerm.get(i) != null && nextTerm.get(i).equals(termToProcess)){
-                        PostingList list = nextPostingList.get(i);
 
-                        // Append the posting list to the final posting list of the term
-                        finalList.appendPostings(list.getPostings());
+                // Process the termToProcess
+                PostingList mergedPostingList = processTerm(termToProcess);
 
-                        //Update the lists for the scanned index
-                        readBufferLine(i);
+                // Save the posting list to disk
+                int memorySize = mergedPostingList.saveToDisk(memOffset);
 
-                        //update vocabulary statistics
-                        vocabularyEntry.updateStatistics(list);
-                    }
-                }
-                //the list for the term is computed, save it on disk and compute the information to store in vocabulary
-                int memorySize = finalList.saveToDisk(memOffset);
-
-                // Write to the vocabulary space occupancy and memory offset of the Posting List
-                vocabularyEntry.setMemorySize(memorySize);
-                vocabularyEntry.setMemoryOffset(memOffset);
-
-                // Compute the final IDF
-                vocabularyEntry.computeIDF();
-
-                // Save vocabulary entry to file
-                vocabularyEntry.saveToDisk();
-
-//              vocabulary.add(vocabularyEntry);
+                // Update the memory offset
                 memOffset += memorySize;
             }
             return true;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
 }

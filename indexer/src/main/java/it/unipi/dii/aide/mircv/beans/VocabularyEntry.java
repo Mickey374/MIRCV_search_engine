@@ -91,6 +91,7 @@ public class VocabularyEntry {
         }
     }
 
+
     /**
      * Compute the idf using the values computed during the merging of the index
      */
