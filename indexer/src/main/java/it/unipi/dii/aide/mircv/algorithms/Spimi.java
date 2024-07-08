@@ -5,7 +5,6 @@ import it.unipi.dii.aide.mircv.beans.PostingList;
 import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.dto.ProcessedDocumentDTO;
 import it.unipi.dii.aide.mircv.utils.CollectionStats;
-import it.unipi.dii.aide.mircv.utils.Utility;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -29,7 +28,7 @@ public class Spimi {
     private static final long MEMORY_THRESHOLD = 80000000;
 
     // Counter for the partial indexes created
-    private static int num_index = 0;
+    private static int numIndex = 0;
 
     /**
      * Function to flush partial index onto disk
@@ -54,10 +53,10 @@ public class Spimi {
 
         // Write the index to disk
         //try (DB db = DBMaker.fileDB(PATH_BASE_TO_INDEX + num_index + ".db").fileChannelEnable().fileMmapEnable().make()) {
-        List<PostingList> partialIndex = (List<PostingList>) db.indexTreeList("index_" + num_index, Serializer.JAVA).createOrOpen();
+        List<PostingList> partialIndex = (List<PostingList>) db.indexTreeList("index_" + numIndex, Serializer.JAVA).createOrOpen();
         partialIndex.addAll(index.values());
 
-        num_index++;        // update the number of partial inverted indexes
+        numIndex++;        // update the number of partial inverted indexes
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
@@ -127,7 +126,7 @@ public class Spimi {
         db.close();
     }
 
-    public static void executeSpimi() {
+    public static int executeSpimi() {
         try(DB db = DBMaker.fileDB(PATH_TO_DOCUMENTS).fileChannelEnable().fileMmapEnable().make();  //fileDB for processed documents
             DB partialIndex = DBMaker.fileDB(PATH_PARTIAL_INDEX).fileChannelEnable().fileMmapEnable().make(); //fileDB for partial indexes
             DB docIndexDB = DBMaker.fileDB(PATH_TO_DOCUMENT_INDEX).fileChannelEnable().fileMmapEnable().make();
@@ -191,11 +190,11 @@ public class Spimi {
             }
             // TODO: Decide if the num_indexes can be the return of Spimi and pass it to merger
 
-            // Keeps track of the number of partial indexes created
-            Utility.setNumIndexes(num_index);
-            System.out.println("Number of Indexes: " + Utility.getNumIndexes());
+            return numIndex;
+
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
     }
 }

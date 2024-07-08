@@ -60,7 +60,7 @@ public class PostingList implements Serializable{
      * @param memoryOffset: the memory offset where the posting list will be saved
      * @return the number of bytes written to disk
      */
-    public int saveToDisk(long memoryOffset){
+    public int saveToDisk(long memoryOffset, VocabularyEntry ve){
         // For each posting, we store the docId and the freq.
         // Each integer will occupy 4 bytes since integers are stored in byte arrays
         int numBytes = getNumBytes();
@@ -68,19 +68,24 @@ public class PostingList implements Serializable{
         // Try to open the file channel to the file of the inverted index
         try (FileChannel fChan = (FileChannel) Files.newByteChannel(Paths.get(PATH_TO_INVERTED_INDEX), StandardOpenOption.WRITE, StandardOpenOption.READ, StandardOpenOption.CREATE)){
             // Instantiate the MappedByteBuffer for integer list of docIds
-            MappedByteBuffer docsBuf = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset, numBytes/2);
-
-            // Instantiate the MappedByteBuffer for integer list of freqs
-            MappedByteBuffer freqBuf = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset+numBytes/2, numBytes/2);
+           MappedByteBuffer buffer = fChan.map(FileChannel.MapMode.READ_WRITE, memoryOffset, numBytes);
 
             // Check if the MappedByteBuffers are correctly instantiated
-            if (docsBuf != null && freqBuf != null) {
+            if (buffer != null) {
                 // Write postings to file
                 for (Map.Entry<Integer, Integer> posting : postings) {
                     // Encode the docId
-                    docsBuf.putInt(posting.getKey());
-                    // Encode the freq
-                    freqBuf.putInt(posting.getValue());
+                    buffer.putInt(posting.getKey());
+                }
+                // Update the memory offset
+                long freqOffset = buffer.position();
+
+                ve.setFrequencyOffset(freqOffset);
+
+                // Write the frequency to the file
+                for (Map.Entry<Integer, Integer> posting : postings) {
+                    // Encode the frequency
+                    buffer.putInt(posting.getValue());
                 }
                 return numBytes;
             }
