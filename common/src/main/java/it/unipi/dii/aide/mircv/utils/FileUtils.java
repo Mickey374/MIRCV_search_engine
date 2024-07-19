@@ -2,46 +2,27 @@ package it.unipi.dii.aide.mircv.utils;
 
 
 import java.io.File;
-import java.io.PrintWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.Objects;
 
+/**
+ * Utility class for file operations
+ */
 public class FileUtils {
 
     /**
-     * Creates the file if it does not exist, else flushes it
-     * @param path is the path of file to create or clean
-     */
-    public static void CreateOrCleanFile(String path){
-        File file = new File(path);
-
-        try {
-            if(file.createNewFile()){
-                System.out.println("File created: " + file.getName() + " at path: " + file.getPath());
-            } else {
-                System.out.println("File Already exists.");
-                try(PrintWriter writer = new PrintWriter(path)){
-                    writer.print("");
-                }catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Creates the file if not exist
+     * creates the file if not exists
      * @param path is the path of the file to be created
      */
     public static void createIfNotExists(String path){
         File file = new File(path);
+
         try {
-            if(file.createNewFile()) {
-                System.out.println("File created: "+ file.getName() + " at path: " + file.getPath());
-            } else {
-                System.out.println("File " + file.getName() + " already exists, at path: " + file.getPath());
-            }
-        } catch (Exception e){
+            file.createNewFile();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -54,5 +35,41 @@ public class FileUtils {
         File file = new File(path);
         if (file.exists())
             file.delete();
+    }
+
+    /**
+     * Creates a directory of given path
+     * @param path directory path
+     **/
+    public static void createDirectory(String path) {
+        try {
+            Path dirPath = Paths.get(path);
+
+            Files.createDirectories(dirPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @param path directory path
+     *  Deletes directory of given path
+     **/
+    public static void deleteDirectory(String path) {
+        File directory = new File(path);
+
+        if(!directory.exists())
+            return;
+
+        boolean successful = true;
+        // Before deleting the directory, delete all files
+        for(File file : Objects.requireNonNull(directory.listFiles()))
+            successful = file.delete();
+
+        if(!successful)
+            return;
+
+        // Delete the directory
+        successful = directory.delete();
     }
 }

@@ -66,5 +66,4 @@ public class Posting {
                 ", frequency=" + frequency +
                 '}';
     }
-
 }

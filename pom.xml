@@ -12,6 +12,8 @@
         <module>collectionLoader</module>
         <module>common</module>
         <module>indexer</module>
+        <module>performanceTests</module>
+        <module>queryHandler</module>
     </modules>
 
     <properties>
