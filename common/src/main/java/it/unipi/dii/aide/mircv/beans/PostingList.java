@@ -140,7 +140,6 @@ public class PostingList {
 
     /**
      * returns the next posting in the list
-     *
      * @return the next posting in the list
      */
     public Posting next() {
@@ -177,7 +176,6 @@ public class PostingList {
     /**
      * returns the first posting with docid greater or equal than the specified docid.
      * If there's no greater or equal docid in the list returns null
-     *
      * @param docid the docid to reach in the list
      * @return the first posting with docid greater or equal than the specified docid, null if this posting doesn't exist
      */
@@ -228,7 +226,6 @@ public class PostingList {
 
     /**
      * function to write the posting list as plain text in the debug files
-     *
      * @param docidsPath:          path of docids file where to write
      * @param freqsPath:           path of freqs file where to write
      * @param maxPostingsPerBlock: maximum number of postings per block
@@ -262,8 +259,8 @@ public class PostingList {
             writerDocids.write("\n");
             writerFreqs.write("\n");
 
-            writerComplete.write(postingInfo[0] + "\n");
-            writerComplete.write(postingInfo[1] + "\n");
+            writerDocids.write(postingInfo[0] + "\n");
+            writerFreqs.write(postingInfo[1] + "\n");
             writerComplete.write(this.toString());
 
             writerDocids.close();

@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
  */
 public class QueryProcesser {
     /**
-     * Vocaulary instance
+     * Vocabulary instance
      */
     private static final Vocabulary vocabulary = Vocabulary.getInstance();
 
@@ -37,7 +37,7 @@ public class QueryProcesser {
     /**
      * load from disk the posting lists of the query tokens
      * @param query         the query document
-     * @param isConjunctive specifies if the query has to be procssed in conjunctive mode
+     * @param isConjunctive specifies if the query has to be processed in conjunctive mode
      * @return the list of the query terms' posting lists
      */
     public static ArrayList<PostingList> getQueryPostings(ProcessedDocument query, boolean isConjunctive){
@@ -68,7 +68,7 @@ public class QueryProcesser {
     }
 
     /**
-     * Lookups in the docuent index to retrieve pids of the top-k documents
+     * Lookups in the document index to retrieve pids of the top-k documents
      * @param priorityQueue The top scored documents
      * @param k number of documents to return
      * @return the ordered array of document pids

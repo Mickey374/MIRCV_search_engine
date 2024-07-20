@@ -198,8 +198,6 @@ public class Merger {
 
                 // Append the posting list to the final posting list of the term
                 finalList.appendPostings(intermediatePostingList.getPostings());
-
-
             }
         }
 
@@ -212,7 +210,7 @@ public class Merger {
 
 
         // compute the final idf
-        vocabularyEntry.computeIDF();
+        vocabularyEntry.computeIdf();
         // compute the term upper bounds
         vocabularyEntry.computeUpperBounds();
 
@@ -480,7 +478,6 @@ public class Merger {
 
     /**
      * loads a partial posting list
-     *
      * @param term  the term of the partial posting list
      * @param index the partial index from which the list is read
      * @return the partial posting list

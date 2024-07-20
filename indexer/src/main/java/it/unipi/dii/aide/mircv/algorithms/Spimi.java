@@ -82,7 +82,6 @@ public class Spimi {
 
     /**
      * writes the partial index on file
-     *
      * @param index: partial index that must be saved onto file
      * @return
      */
@@ -145,7 +144,7 @@ public class Spimi {
                     }
                     vocEntry.updateStatistics(list);
                     vocEntry.setBM25Dl(list.getBM25Dl());
-                    vocEntry.setBM25Tf(list.getBM25Tf());
+                    vocEntry.setBM25Tf(list.getBM25tf());
                     vocEntry.setDocidSize((int) (numPostings*4));
                     vocEntry.setFrequencySize((int) (numPostings*4));
 
@@ -180,7 +179,7 @@ public class Spimi {
     private static void updateOrAddPosting(int docid, PostingList postingList){
         if(postingList.getPostings().size() > 0) {
             // Last document inserted
-            Posting lastPosting = (Posting) postingList.getPostings().get(postingList.getPostings().size() - 1);
+            Posting lastPosting = postingList.getPostings().get(postingList.getPostings().size() - 1);
             if (docid == lastPosting.getDocid()) {
                 lastPosting.setFrequency(lastPosting.getFrequency() + 1);
                 return;
@@ -281,7 +280,7 @@ public class Spimi {
 
                         // Update or add the posting
                         updateOrAddPosting(docid, postingList);
-                        postingList.updateBM25Parameters(documentLength, postingList.getPostings().size());
+                        postingList.updateBM25Params(documentLength, postingList.getPostings().size());
                     }
                     docid++;
                     if((docid % 1000000) == 0)

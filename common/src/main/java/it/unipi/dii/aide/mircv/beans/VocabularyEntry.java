@@ -204,6 +204,13 @@ public class VocabularyEntry {
     }
 
     /**
+     * Memory Offset of the vocabulary entry
+     */
+    public void setMemoryOffset(long memoryOffset) {
+        this.docidOffset = memoryOffset;
+    }
+
+    /**
      * Setter for Frequency Offset
      */
     public void setFrequencyOffset(long frequencyOffset) {
@@ -273,7 +280,6 @@ public class VocabularyEntry {
 
     /**
      * Read the document index entry from disk
-     *
      * @param memoryOffset the memory offset from which we start reading
      * @param PATH         path of the file on disk
      * @return the position of the last byte read

@@ -5,7 +5,6 @@ import it.unipi.dii.aide.mircv.compression.VariableByteCompressor;
 import it.unipi.dii.aide.mircv.config.ConfigurationParams;
 import it.unipi.dii.aide.mircv.config.Flags;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;

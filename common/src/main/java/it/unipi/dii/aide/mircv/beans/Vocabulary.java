@@ -105,11 +105,11 @@ public class Vocabulary extends LinkedHashMap<String, VocabularyEntry> {
         // Entry to be returned
         VocabularyEntry entry = new VocabularyEntry();
 
-        long start = 0;         // Start position of the entry
-        long end = 0;           // End position of the entry
-        long mid;               // Index of the elem of vocabulary to read
-        String key;             // elem of vocabulary read
-        long entrySize = VocabularyEntry.ENTRY_SIZE; // Size of the entry
+        long start = 0;                                             // Start position of the entry
+        long end = CollectionSize.getVocabularySize() -1;           // End position of the entry
+        long mid;                                                   // Index of the elem of vocabulary to read
+        String key;                                                 // elem of vocabulary read
+        long entrySize = VocabularyEntry.ENTRY_SIZE;                // Size of the entry
 
         // Binary search to find the term in the vocabulary
         while (start <= end) {

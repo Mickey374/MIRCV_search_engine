@@ -125,8 +125,8 @@ public class Main {
         int seconds = (int) ((end - start) / 1000) % 60;
 
         if(seconds < 10)
-            System.out.println(operation + ": " + minutes + ":0" + seconds);
+            System.out.println(operation + "done in: " + minutes + ":0" + seconds);
         else
-            System.out.println(operation + ": " + minutes + ":" + seconds);
+            System.out.println(operation + "done in: " + minutes + ":" + seconds);
     }
 }

@@ -14,7 +14,7 @@ public class UnaryCompressor {
         int nBits = 0;
 
         // find the maximum number of bits needed to represent the frequencies
-        for(int i=0; i<toBeCompressed.length; i++) {
+        for (int i=0; i<toBeCompressed.length; i++) {
             // Each integer number will be compressed in a number of bits equal to its value
             nBits += toBeCompressed[i];
         }
@@ -63,7 +63,6 @@ public class UnaryCompressor {
                 nextBitToWrite = 0;
             }
         }
-
         return compressedArray;
     }
 
@@ -85,7 +84,7 @@ public class UnaryCompressor {
         for(int i=0; i < toBeDecompressed.length * 8; i++){
             // Create a byte, b, where only the bit (i%8) is set to 1 or 0
             byte b = 0b00000000;
-            b |= (1 << 7-(i%8));
+            b |= (byte) (1 << 7-(i%8));
 
             System.out.println("Integer Binary String: " + Integer.toBinaryString(b & 255 | 256).substring(1));
 

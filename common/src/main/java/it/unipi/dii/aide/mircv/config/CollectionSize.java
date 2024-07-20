@@ -1,7 +1,6 @@
 package it.unipi.dii.aide.mircv.config;
 
 import java.io.*;
-import java.util.Collection;
 
 /**
  * The class that contains the collection size

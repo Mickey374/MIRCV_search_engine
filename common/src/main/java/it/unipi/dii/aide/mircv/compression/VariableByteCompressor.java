@@ -16,7 +16,7 @@ public class VariableByteCompressor {
         }
 
         // compute the number of bytes needed
-        int numBytes = (int) Math.ceil(log(toBeCompressed) / log(128)) + 1;
+        int numBytes = (int) (log(toBeCompressed) / log(128)) + 1;
 
         // create the byte array
         byte[] output = new byte[numBytes];
@@ -30,7 +30,6 @@ public class VariableByteCompressor {
 
         // set the most significant bit of the last byte to 1
         output[numBytes - 1] += 128;
-
         return output;
     }
 
@@ -87,7 +86,7 @@ public class VariableByteCompressor {
                 decompressedArray[alreadyDecompressed] = decompressedNumber;
 
                 // increase the number of processed numbers
-                alreadyDecompressed ++;
+                alreadyDecompressed++;
 
                 //reset the variable for the next number to decompress
                 decompressedNumber = 0;

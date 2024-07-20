@@ -53,9 +53,8 @@ public class Flags {
 
     /**
      * updates the flag status and save them to file
-     *
      * @param compressionFlag     to set compression
-     * @param stemStopRemovalFlag to set setemming and stopword removal
+     * @param stemStopRemovalFlag to set stemming and stopword removal
      * @param maxScoreFlag        to set max score algorithm
      * @return true if successful
      */

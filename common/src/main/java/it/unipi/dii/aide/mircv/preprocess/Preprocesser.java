@@ -12,8 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The class that preprocesses the documents
@@ -89,7 +87,7 @@ public class Preprocesser {
     /**
      * Tokenize the text
      * @param text: text to tokenize
-     * @return list of tokens
+     * @return array of tokens
      */
     public static String[] tokenizeWords(String text) {
         //list of tokens
@@ -143,7 +141,7 @@ public class Preprocesser {
     /**
      * Remove stopwords from the text
      * @param tokens: list of tokens
-     * @return list of tokens without stopwords
+     * @return array of tokens
      */
     private static String[] removeStopwords(String[] tokens) {
         // ArrayList to hold valid tokens
@@ -152,7 +150,7 @@ public class Preprocesser {
         // Add the token to valid tokens if not a stop word
         for (String token : tokens)
             // If the token is not a stopword, add it to the list
-            if (!stopwords.contains(token) && token.length() < TERM_THRESHOLD)
+            if (!stopwords.contains(token) && token.length() <= TERM_THRESHOLD)
                 validTokens.add(token);
 
         return validTokens.toArray(new String[0]);
@@ -206,6 +204,6 @@ public class Preprocesser {
      * Used in test environment
      */
     protected static void setTestPath() {
-        PATH_TO_STOPWORDS = "../config/stopwords.txt";
+        PATH_TO_STOPWORDS = "../config/stopwords-en.txt";
     }
 }

@@ -309,7 +309,6 @@ public class MaxScore {
 
             sortedLists.add(new AbstractMap.SimpleEntry<>(postingList, termUpperBound));
         }
-
         return new ArrayList<>(sortedLists.stream().toList());
     }
 }
