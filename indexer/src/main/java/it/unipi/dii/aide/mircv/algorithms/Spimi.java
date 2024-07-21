@@ -107,18 +107,18 @@ public class Spimi {
         try (
                 FileChannel docsFChannel = (FileChannel) Files.newByteChannel(
                         Paths.get(PATH_TO_PARTIAL_DOCID + "_" + numIndex),
-                        StandardOpenOption.WRITE,
                         StandardOpenOption.READ,
+                        StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE);
                 FileChannel freqFChannel = (FileChannel) Files.newByteChannel(
                         Paths.get(PATH_TO_PARTIAL_FREQUENCIES + "_" + numIndex),
-                        StandardOpenOption.WRITE,
                         StandardOpenOption.READ,
+                        StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE);
                 FileChannel vocabFChannel = (FileChannel) Files.newByteChannel(
                         Paths.get(PATH_TO_PARTIAL_VOCABULARY + "_" + numIndex),
-                        StandardOpenOption.WRITE,
                         StandardOpenOption.READ,
+                        StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE);
         ) {
             // Write the index to disk

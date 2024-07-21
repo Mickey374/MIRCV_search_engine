@@ -113,6 +113,10 @@ public class DocumentIndexEntry {
                 StandardOpenOption.WRITE,
                 StandardOpenOption.CREATE,
                 StandardOpenOption.APPEND)) {
+
+            long position = fc.size();
+            memOffset = position;
+
             //Instantiate the MappedByte buffer for the entry
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, memOffset, ENTRY_SIZE);
 
@@ -126,6 +130,7 @@ public class DocumentIndexEntry {
                 cb.put(i, this.pid.charAt(i));
 
             // Write the pid to the buffer
+            cb.flip();
             buffer.put(StandardCharsets.UTF_8.encode(cb));
 
             // Write the docid
@@ -138,7 +143,7 @@ public class DocumentIndexEntry {
             long startOffset = memOffset;
 
             // update memory offset
-            memOffset = memOffset + ENTRY_SIZE;
+            memOffset += ENTRY_SIZE;
 
             return startOffset;
         } catch (IOException e) {
@@ -156,9 +161,10 @@ public class DocumentIndexEntry {
         // Read the entry from disk using a FileChannel
         try (FileChannel fc = (FileChannel) Files.newByteChannel(
                 Paths.get(PATH_TO_DOCUMENT_INDEX),
-                StandardOpenOption.WRITE,
-                StandardOpenOption.READ,
-                StandardOpenOption.CREATE)) {
+                StandardOpenOption.READ
+//                StandardOpenOption.WRITE,
+//                StandardOpenOption.CREATE
+        )) {
             // Instantiate the MappedByte buffer for the entry
             MappedByteBuffer buffer = fc.map(FileChannel.MapMode.READ_WRITE, memoryOffset, PID_SIZE);
 

@@ -48,7 +48,7 @@ public class ConfigurationParams {
                 partialVocabularyDir = doc.getElementsByTagName("partialVocabularyDir").item(0).getTextContent();
                 frequencyFileName = doc.getElementsByTagName("frequencyFileName").item(0).getTextContent();
                 docidsFileName = doc.getElementsByTagName("docidsFileName").item(0).getTextContent();
-                vocabularyFilename = doc.getElementsByTagName("vocabularyFilename").item(0).getTextContent();
+                vocabularyFilename = doc.getElementsByTagName("vocabularyFileName").item(0).getTextContent();
                 frequencyDir = doc.getElementsByTagName("frequencyDir").item(0).getTextContent();
                 docidsDir = doc.getElementsByTagName("docidsDir").item(0).getTextContent();
                 collectionStatisticsPath = doc.getElementsByTagName("collectionStatisticsPath").item(0).getTextContent();

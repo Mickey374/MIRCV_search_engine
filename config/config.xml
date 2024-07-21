@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <it.unipi.dii.aide.mircv.mircv_search_engine.config.ConfigurationParams>
-    <rawCollectionPath>data/test_sample.tsv</rawCollectionPath>         <!--To change this later to main file-->
-    <compressedCollectionPath>data/collection.tar.gz</compressedCollectionPath>
+    <rawCollectionPath>data/collection.tsv</rawCollectionPath>         <!--To change this later to main file-->
+    <compressedCollectionPath>data/collection.tar.xz</compressedCollectionPath>
     <stopwordsPath>config/stopwords-en.txt</stopwordsPath>
     <documentIndexPath>data/documentIndex</documentIndexPath>
     <frequencyFileName>/frequencies</frequencyFileName>
